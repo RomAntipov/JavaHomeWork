@@ -15,12 +15,13 @@ public class VetСlinic {
         Horse horse2 = new Horse("трава", "поле", false, "рыжая");
 
         Animal[] animals = {cat1,cat2,dog1,dog2,horse1,horse2};
+        for (Animal animal : animals){
+            Veterinarian.threatAnimal(animal);
+        }
 
-        Class clazz = Class.forName("com.pb.antipov.hw6.Veterinarian");
-        System.out.println(clazz.getName());
-        System.out.println(Veterinarian.class);
-        Method method2 = clazz.getDeclaredMethod("threatAnimal", Animal.class);
+        Class vetClazz = Class.forName("com.pb.antipov.hw6.Veterinarian");
+        Constructor constr = vetClazz.getConstructor();
+        Object obj = constr.newInstance();
 
-        method2.invoke(cat1);
     }
 }
