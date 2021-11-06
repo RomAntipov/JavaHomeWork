@@ -1,5 +1,8 @@
 package com.pb.antipov.hw6;
 
+import com.sun.org.glassfish.gmbal.Description;
+
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.Arrays;
 
@@ -15,13 +18,14 @@ public class VetСlinic {
         Horse horse2 = new Horse("трава", "поле", false, "рыжая");
 
         Animal[] animals = {cat1,cat2,dog1,dog2,horse1,horse2};
-        for (Animal animal : animals){
-            Veterinarian.threatAnimal(animal);
-        }
 
         Class vetClazz = Class.forName("com.pb.antipov.hw6.Veterinarian");
-        Constructor constr = vetClazz.getConstructor();
-        Object obj = constr.newInstance();
+        Method threat = vetClazz.getDeclaredMethod("threatAnimal", Animal.class);
+        Object obj = vetClazz.newInstance();
+
+        for (Animal animal : animals){
+            threat.invoke(obj, animal);
+        }
 
     }
 }
