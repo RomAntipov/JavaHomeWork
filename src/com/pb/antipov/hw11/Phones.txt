@@ -1,0 +1,43 @@
+[ {
+  "name" : "Alisa",
+  "birthDate" : "1997-02-01",
+  "phoneNumber" : [ "+3809999999999" ],
+  "address" : null,
+  "modifyDate" : "2021-12-22T02:05:02.293",
+  "createDate" : "2021-12-22T01:21:22.729"
+}, {
+  "name" : "Vasiliy",
+  "birthDate" : null,
+  "phoneNumber" : [ "+141321231231231" ],
+  "address" : null,
+  "modifyDate" : null,
+  "createDate" : "2021-12-22T01:21:22.729"
+}, {
+  "name" : "Roman",
+  "birthDate" : "1991-10-17",
+  "phoneNumber" : [ "+380993295611", "+380964990201" ],
+  "address" : "Dnipro",
+  "modifyDate" : "2021-12-22T01:10:12.823",
+  "createDate" : "2021-12-22T01:21:22.683"
+}, {
+  "name" : "Roman",
+  "birthDate" : "1991-10-15",
+  "phoneNumber" : [ "+380993295611", "+380964990201" ],
+  "address" : "Dnipro",
+  "modifyDate" : "2021-12-22T01:10:12.823",
+  "createDate" : "2021-12-22T01:21:22.683"
+}, {
+  "name" : "Vasiliy",
+  "birthDate" : "1992-05-12",
+  "phoneNumber" : [ "+141321231231231" ],
+  "address" : null,
+  "modifyDate" : null,
+  "createDate" : "2021-12-22T01:21:22.729"
+}, {
+  "name" : "Alisa",
+  "birthDate" : "2000-01-01",
+  "phoneNumber" : [ "+3809999999999" ],
+  "address" : null,
+  "modifyDate" : null,
+  "createDate" : "2021-12-22T01:21:22.729"
+} ]
