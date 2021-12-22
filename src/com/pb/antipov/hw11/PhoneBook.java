@@ -2,23 +2,20 @@ package com.pb.antipov.hw11;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
-import java.util.logging.Level;
+
 
 import static java.time.Period.between;
 
@@ -54,6 +51,7 @@ public class PhoneBook {
                     deleteContact(scan, phoneBook);
                     break;
                 case "4":
+                    findContacts(scan, phoneBook);
                     break;
                 case "5":
                     sort(scan, phoneBook);
@@ -68,7 +66,7 @@ public class PhoneBook {
                     loadFromFile(phoneBook);
                     break;
                 case "9":
-                    System.out.println("Bye!");
+                    System.out.println("Работа с приложением завершена!");
                     return;
                 default:
                     System.out.println("Выберите действие");
@@ -79,13 +77,14 @@ public class PhoneBook {
 
 
     private static void addContact(Scanner scan, LinkedList<Contact> phoneBook) {
-        Contact p = new Contact();
         System.out.println("PhoneBook -> Добавить контакт");
         System.out.println("Укажите ФИО");
-        p.setName(scan.nextLine());
+        String fio = scan.nextLine();
 
         System.out.println("Укажите номер телефона: ");
-        p.setPhoneNumber(scan.nextLine());
+        String phone = scan.nextLine();
+
+        Contact p = new Contact(fio,phone);
 
         while (true) {
             System.out.println();
@@ -102,7 +101,7 @@ public class PhoneBook {
                 case "1":
                     System.out.println("PhoneBook -> Добавить контакт -> Добавить номер телефона");
                     System.out.println("Укажите номер телефона: ");
-                    p.setPhoneNumber(scan.nextLine());
+                    p.addPhoneNumber(scan.nextLine());
                     break;
                 case "2":
                     System.out.println("PhoneBook -> Добавить контакт -> Добавить дату рождения");
@@ -143,7 +142,7 @@ public class PhoneBook {
             System.out.println("PhoneBook -> Все контакты");
             int i = 1;
             for (Contact c : phoneBook) {
-                System.out.println(i+". "+c.getInfo());
+                System.out.println(i+". "+c.description());
                 i++;
             }
         }
@@ -174,7 +173,12 @@ public class PhoneBook {
             String option = scan.nextLine();
             switch (option) {
                 case "1":
-                    phoneBook.sort(Comparator.comparingInt(p -> between(LocalDate.now(), p.getBirthDate()).getYears()));
+                    phoneBook.sort(Comparator.comparingInt(p -> {
+                        LocalDate date = p.getBirthDate();
+                        if (p.getBirthDate() == null) date = LocalDate.of(1900,1,1);
+                        Period years = between(LocalDate.now(), date);
+                        return years.getYears();
+                    }));
                     showContacts(phoneBook);
                     System.out.println("\nСписок контактов отсортирован по дате рождения");
                     break;
@@ -197,12 +201,19 @@ public class PhoneBook {
     }
 
     private static void modifyContact(Scanner scan, LinkedList<Contact> p){
+        showContacts(p);
         while (true){
-            System.out.println();
-            System.out.println("PhoneBook -> Редактирование");
-            System.out.println("Укажите номер записи для редактирования");
-            int i = Integer.parseInt(scan.nextLine())-1;
-            System.out.println(p.get(i));
+            int i;
+            try {
+                System.out.println();
+                System.out.println("PhoneBook -> Редактирование");
+                System.out.println("Укажите номер записи для редактирования");
+                i = Integer.parseInt(scan.nextLine())-1;
+                System.out.println(p.get(i));
+            } catch (Exception e) {
+                System.out.println("Неверно указан номер записи");
+                return;
+            }
             System.out.println("Выберите поле для редактирования");
             System.out.println("1. ФИО");
             System.out.println("2. Номер телефона");
@@ -230,7 +241,7 @@ public class PhoneBook {
                         switch (rdn) {
                             case "1":
                                 System.out.println("Укажите номер телефона для добавления");
-                                p.get(i).setPhoneNumber(scan.nextLine());
+                                p.get(i).addPhoneNumber(scan.nextLine());
                                 p.get(i).setModifyDate(LocalDateTime.now());
                                 break;
                             case "2":
@@ -253,21 +264,27 @@ public class PhoneBook {
                                 if (p.get(i).getPhoneNumber().size() > 1) {
                                     System.out.println("Укажите номер записи телефона для редактирования");
                                     String[] phones = new String[p.get(i).getPhoneNumber().size()];
+                                    int n = 0;
                                     for (String phone : p.get(i).getPhoneNumber()) {
-                                        int n = 0;
                                         phones[n] = phone;
                                         n++;
                                         System.out.println(n + ". " + phone);
                                     }
-                                    int n = scan.nextInt() - 1;
+                                    try {
+                                        n = Integer.parseInt(scan.nextLine())-1;
+                                    } catch (Exception e) {
+                                        System.out.println("Неверно указан номер записи");
+                                        return;
+                                    }
                                     p.get(i).getPhoneNumber().remove(phones[n]);
                                     System.out.println("Укажите новый номер телефона");
-                                    p.get(i).setPhoneNumber(scan.nextLine());
+                                    String ph = scan.nextLine();
+                                    p.get(i).addPhoneNumber(ph);
                                     p.get(i).setModifyDate(LocalDateTime.now());
                                 } else {
                                     p.get(i).getPhoneNumber().clear();
                                     System.out.println("Укажите новый номер телефона");
-                                    p.get(i).setPhoneNumber(scan.nextLine());
+                                    p.get(i).addPhoneNumber(scan.nextLine());
                                     p.get(i).setModifyDate(LocalDateTime.now());
                                 }
                                 break;
@@ -286,16 +303,26 @@ public class PhoneBook {
                         System.out.println("Неверный формат даты");
                     }
                     p.get(i).setModifyDate(LocalDateTime.now());
-                    break;
+                    return;
                 case "4":
                     System.out.println("Укажите новый адрес контакта");
                     p.get(i).setAddress(scan.nextLine());
                     p.get(i).setModifyDate(LocalDateTime.now());
-                    break;
+                    return;
                 case "5":
                     return;
                 default:
                     System.out.println("Выберите действие");
+            }
+        }
+    }
+
+    private static void findContacts (Scanner scan, LinkedList<Contact> phoneBook){
+        System.out.println("Введите имя для поиска");
+        String f = scan.nextLine();
+        for (Contact c : phoneBook) {
+            if(c.getName().contains(f)){
+                System.out.println(c);
             }
         }
     }
@@ -305,55 +332,57 @@ public class PhoneBook {
         // pretty printing (json с отступами)
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         // для работы с полями типа LocalDate
-        SimpleModule module = new SimpleModule();
-        module.addSerializer(LocalDate.class, new LocalDateSerializer());
-        module.addDeserializer(LocalDate.class, new LocalDateDeserializer());
-        mapper.registerModule(module);
+        SimpleModule module1 = new SimpleModule();
+        SimpleModule module2 = new SimpleModule();
+        module1.addSerializer(LocalDate.class, new LocalDateSerializer());
+        module2.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer());
+        mapper.registerModule(module1);
+        mapper.registerModule(module2);
 
         String json = mapper.writeValueAsString(phoneBook);
-        try {
+        FileWriter myWriter = new FileWriter("src\\com\\pb\\antipov\\hw11\\Phones.txt");
 
-            File file = Paths.get("files/person.data").toFile();
-            FileOutputStream outputStream = new FileOutputStream(file);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-            objectOutputStream.writeObject(json);
+        try {
+            myWriter.write(json);
+            System.out.println("Экспорт контактов в файл успешно завершен!");
         }
         catch (Exception e)
         {
             System.out.println(e.getMessage());
+        } finally {
+            myWriter.close();
         }
-//        // write to file
-//        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get("src\\com\\pb\\antipov\\hw11\\PhoneBook.txt"))) {
-//            writer.write(json);
-//        } catch (Exception ex) {
-//            System.out.println(ex);
-//        }
     }
 
     private static void loadFromFile(LinkedList<Contact> phoneBook) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        // pretty printing (json с отступами)
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
         // для работы с полями типа LocalDate
-        SimpleModule module = new SimpleModule();
-        module.addSerializer(LocalDate.class, new LocalDateSerializer());
-        module.addDeserializer(LocalDate.class, new LocalDateDeserializer());
-        mapper.registerModule(module);
+        SimpleModule module1 = new SimpleModule();
+        SimpleModule module2 = new SimpleModule();
+        module1.addDeserializer(LocalDate.class, new LocalDateDeserializer());
+        module2.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer());
+        mapper.registerModule(module1);
+        mapper.registerModule(module2);
 
-        // read from file
-        //Path path = Paths.get("src\\com\\pb\\antipov\\hw9\\PhoneBook.txt");
-
+        BufferedReader br = new BufferedReader(new FileReader("src\\com\\pb\\antipov\\hw11\\Phones.txt"));
         try {
+            StringBuilder sb = new StringBuilder();
+            String line = br.readLine();
 
-            File file = Paths.get("src\\com\\pb\\antipov\\hw11\\PhoneBook.txt").toFile();
-            FileInputStream fileInputStream = new FileInputStream(file);
-            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-            LinkedList<Contact> pb = (LinkedList<Contact>) objectInputStream.readObject();
-            System.out.println(pb);
-        }
-        catch (Exception e)
-        {
-            System.out.println(e.getMessage());
+            while (line != null) {
+                sb.append(line);
+                sb.append(System.lineSeparator());
+                line = br.readLine();
+            }
+            String everything = sb.toString();
+            List<Contact> contacts = mapper.readValue(everything, new TypeReference<LinkedList<Contact>>() {});
+//            for (Contact p: persons3) {
+//                phoneBook.add(p);
+//            }
+            contacts.stream().forEach(p -> {phoneBook.add(p);});
+        } finally {
+            br.close();
+            System.out.println("Импорт контактов завершен");
         }
 
     }
@@ -386,7 +415,32 @@ public class PhoneBook {
             gen.writeString(value.format(DateTimeFormatter.ISO_LOCAL_DATE));
         }
     }
+    public static class LocalDateTimeSerializer extends StdSerializer<LocalDateTime> {
 
+        private static final long serialVersionUID = 2L;
+
+        public LocalDateTimeSerializer(){
+            super(LocalDateTime.class);
+        }
+
+        @Override
+        public void serialize(LocalDateTime value, JsonGenerator gen, SerializerProvider sp) throws IOException {
+            gen.writeString(value.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        }
+    }
+    public static class LocalDateTimeDeserializer extends StdDeserializer<LocalDateTime> {
+
+        private static final long serialVersionUID = 2L;
+
+        protected LocalDateTimeDeserializer() {
+            super(LocalDateTime.class);
+        }
+
+        @Override
+        public LocalDateTime deserialize(JsonParser jp, DeserializationContext cnxt) throws IOException {
+            return LocalDateTime.parse(jp.readValueAs(String.class));
+        }
+    }
 
 
 

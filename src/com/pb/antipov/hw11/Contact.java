@@ -1,41 +1,41 @@
 package com.pb.antipov.hw11;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.io.Serializable;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Set;
 
 import static java.time.Period.between;
 
-public class Contact extends PhoneBook {
+public class Contact implements Serializable {
     private String name;
     private LocalDate birthDate;
-    private HashSet<String> phoneNumber = new HashSet<>();
+    private Set<String> phoneNumber = new HashSet<>();
     private String address;
-    private LocalDateTime createDate;
     private LocalDateTime modifyDate;
+    private LocalDateTime createDate = LocalDateTime.now();
 
-    public Contact(String name, LocalDate birthDate, String address, String phoneNumber) {
+
+    public Contact(String name, LocalDate birthDate, Set<String> phoneNumber, String address, LocalDateTime modifyDate) {
         this.name = name;
         this.birthDate = birthDate;
+        this.phoneNumber = phoneNumber;
         this.address = address;
-        this.phoneNumber.add(phoneNumber);
-        this.createDate = LocalDateTime.now();
-    }
-
-    public Contact(String name, LocalDate birthDate, String phoneNumber) {
-        this.name = name;
-        this.birthDate = birthDate;
-        this.phoneNumber .add(phoneNumber);
-        this.createDate = LocalDateTime.now();
+        this.modifyDate = modifyDate;
     }
 
     public Contact(String name, String phoneNumber) {
         this.name = name;
         this.phoneNumber.add(phoneNumber);
-        this.createDate = LocalDateTime.now();
     }
 
-    public Contact() {}
+    public Contact() {
+    }
 
     public String getName() {
         return name;
@@ -54,12 +54,16 @@ public class Contact extends PhoneBook {
 
     }
 
-    public HashSet<String> getPhoneNumber() {
+    public Set<String> getPhoneNumber() {
         return phoneNumber;
     }
 
-    public void setPhoneNumber(String p) {
+    public void addPhoneNumber(String p) {
         this.phoneNumber.add(p);
+    }
+
+    public void setPhoneNumber(Set<String> phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getAddress() {
@@ -70,20 +74,20 @@ public class Contact extends PhoneBook {
         this.address = address;
     }
 
-    public LocalDateTime getCreateDate() {
-        return createDate;
-    }
-
-    public void setCreateDate(LocalDateTime createDate) {
-        this.createDate = createDate;
-    }
-
     public LocalDateTime getModifyDate() {
         return modifyDate;
     }
 
     public void setModifyDate(LocalDateTime modifyDate) {
         this.modifyDate = modifyDate;
+    }
+
+    public LocalDateTime getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(LocalDateTime createDate) {
+        this.createDate = createDate;
     }
 
     @Override
@@ -95,8 +99,15 @@ public class Contact extends PhoneBook {
                 ;
     }
 
-    public String getInfo() {
-        if(birthDate != null & address != null){
+    public String description() {
+        if(birthDate != null & address != null & modifyDate != null){
+            return  "ФИО: " + name +
+                    ", Номер телефона: " + phoneNumber +
+                    ", Дата Рождения: " + birthDate +
+                    ", Адрес: " + address +
+                    ", Дата редактирования " + modifyDate + '.'
+                    ;
+        } else if (birthDate != null & address != null){
             return  "ФИО: " + name +
                     ", Номер телефона: " + phoneNumber +
                     ", Дата Рождения: " + birthDate +
